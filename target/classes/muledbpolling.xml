@@ -17,7 +17,6 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     
     <objectstore:config name="ObjectStore__Configuration" doc:name="ObjectStore: Configuration" objectStore-ref="_defaultUserObjectStore" persistent="true" entryTtl="0" expirationInterval="0" maxEntries="0"/>
-    <http:request-config name="HTTP_Request_Configuration" host="localhost" port="8081" doc:name="HTTP Request Configuration"/>
     
     <flow name="muledbpollingFlow" processingStrategy="synchronous">
         <poll doc:name="Poll">
@@ -38,20 +37,18 @@ System.out.println("Payload: " + payload );
 System.out.println("Executing " + flowVars.dividend + " / " + flowVars.divisor );
 def ans = flowVars.dividend / flowVars.divisor ;]]></scripting:script>
             </scripting:component>
+
             <set-variable variableName="previousRecordID" value="#[flowVars['currentRecord']]" doc:name="previousRecordID"/>
         </foreach>
         <catch-exception-strategy doc:name="Catch Exception Strategy" enableNotifications="false" logException="false">
-            <http:request config-ref="HTTP_Request_Configuration" path="/pollReset" method="POST" doc:name="HTTP">
-                <http:request-builder>
-                    <http:query-param paramName="lastEmployeeID" value="#[flowVars['previousRecordID']]"/>
-                </http:request-builder>
-            </http:request>
-
+            <set-variable variableName="lastRecordID" value="#[flowVars['previousRecordID']]" doc:name="Variable"/>
+            <objectstore:retrieve-and-store config-ref="ObjectStore__Configuration" key="lastRecordID" defaultValue-ref="#[0]" storeValue-ref="#[flowVars['previousRecordID']]" doc:name="Copy_of_ObjectStore"/>
             <scripting:component doc:name="Exception Stack Trace Print Out">
                 <scripting:script engine="Groovy"><![CDATA[System.out.println("Exception Encoutered ...");
 System.out.println("Resetting Back to Last Successful Record ID:" + flowVars['lastRecordID']);
 ]]></scripting:script>
             </scripting:component>
+
         </catch-exception-strategy>
     </flow>
     <flow name="resetObjectStore">
