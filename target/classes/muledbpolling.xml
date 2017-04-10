@@ -21,28 +21,29 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
     <flow name="muledbpollingFlow" processingStrategy="synchronous">
         <poll doc:name="Poll">
             <fixed-frequency-scheduler frequency="5000"/>
-            <watermark variable="lastRecordID" default-expression="1" selector="MAX" selector-expression="#[payload['no']]" object-store-ref="_defaultUserObjectStore"/>
+            <watermark variable="lastRecordID" default-expression="1"  selector-expression="#[payload['no']]" object-store-ref="_defaultUserObjectStore" update-expression="#[flowVars['previousRecordID']]"/>
             <db:select config-ref="Generic_Database_Configuration" streaming="true" maxRows="2" fetchSize="2" doc:name="SQLServer">
                 <db:parameterized-query><![CDATA[select * from muledemodb.dbo.employees where no > #[flowVars['lastRecordID']] order by no asc]]></db:parameterized-query>
             </db:select>
         </poll>
-        <set-variable variableName="previousRecordID" value="0" doc:name="Initialize previousRecordID"/>
-        <scripting:component doc:name="Groovy">
-            <scripting:script engine="Groovy"><![CDATA[for(def employee : payload){
-    println "Processing Employee Record : " + employee.get("no");
-    flowVars.dividend = Math.abs(new Random().nextInt() % 3 - 1);
-	flowVars.divisor = Math.abs(new Random().nextInt() % 3 - 1);
-    println "Payload: " + payload ;
-    println "Executing " + flowVars.dividend + " / " + flowVars.divisor ;
-    def ans = flowVars.dividend / flowVars.divisor ;
-    flowVars.lastRecordID = employee.get("no");
-}]]></scripting:script>
-        </scripting:component>
+        <set-variable variableName="previousRecordID" value="#[flowVars['lastRecordID']]" doc:name="Initialize previousRecordID"/>
+        <foreach doc:name="For Each">
+            <set-variable variableName="currentRecord" value="#[payload['no']]" doc:name="currentRecord"/>
+            <scripting:component doc:name="RandDividend">
+                <scripting:script engine="Groovy"><![CDATA[flowVars.dividend = Math.abs(new Random().nextInt() % 3 - 1);
+flowVars.divisor = Math.abs(new Random().nextInt() % 3 - 1);
+System.out.println("Curent Record ID:" + flowVars['currentRecord']);
+System.out.println("Payload: " + payload );
+System.out.println("Executing " + flowVars.dividend + " / " + flowVars.divisor );
+def ans = flowVars.dividend / flowVars.divisor ;]]></scripting:script>
+            </scripting:component>
 
+            <set-variable variableName="previousRecordID" value="#[flowVars['currentRecord']]" doc:name="previousRecordID"/>
+        </foreach>
         <catch-exception-strategy doc:name="Catch Exception Strategy" enableNotifications="false" logException="false">
             <scripting:component doc:name="Exception Stack Trace Print Out">
                 <scripting:script engine="Groovy"><![CDATA[System.out.println("Exception Encoutered ...");
-System.out.println("Resetting Back to Last Successful Record ID:" + flowVars['lastRecordID']);
+System.out.println("Resetting Back to Last Successful Record ID:" + flowVars['previousRecordID']);
 ]]></scripting:script>
             </scripting:component>
 
