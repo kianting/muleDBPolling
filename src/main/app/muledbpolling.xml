@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
 
-    <db:generic-config name="Generic_Database_Configuration" url="jdbc:sqlserver://127.0.0.1;user=sa;password=Angel1982#tkf;" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:sqlserver://127.0.0.1;user=sa;password=yourPassword;" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     
     <objectstore:config name="ObjectStore__Configuration" doc:name="ObjectStore: Configuration" objectStore-ref="_defaultUserObjectStore" persistent="true" entryTtl="0" expirationInterval="0" maxEntries="0"/>
