@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
     <objectstore:config name="ObjectStore__Configuration" doc:name="ObjectStore: Configuration" objectStore-ref="_defaultUserObjectStore" persistent="true" entryTtl="0" expirationInterval="0" maxEntries="0"/>
     
     <flow name="muledbpollingFlow" processingStrategy="synchronous">
-        <poll doc:name="Poll">
+        <poll doc:name="Poll"> 
             <fixed-frequency-scheduler frequency="5000"/>
             <watermark variable="lastRecordID" default-expression="1"  selector-expression="#[payload['no']]" object-store-ref="_defaultUserObjectStore" update-expression="#[flowVars['previousRecordID']]"/>
             <db:select config-ref="Generic_Database_Configuration" streaming="true" maxRows="2" fetchSize="2" doc:name="SQLServer">
