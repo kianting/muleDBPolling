@@ -27,22 +27,19 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
             </db:select>
         </poll>
         <set-variable variableName="previousRecordID" value="0" doc:name="Initialize previousRecordID"/>
-        <foreach doc:name="For Each">
-            <set-variable variableName="currentRecord" value="#[payload['no']]" doc:name="currentRecord"/>
-            <scripting:component doc:name="RandDividend">
-                <scripting:script engine="Groovy"><![CDATA[flowVars.dividend = Math.abs(new Random().nextInt() % 3 - 1);
-flowVars.divisor = Math.abs(new Random().nextInt() % 3 - 1);
-System.out.println("Curent Record ID:" + flowVars['currentRecord']);
-System.out.println("Payload: " + payload );
-System.out.println("Executing " + flowVars.dividend + " / " + flowVars.divisor );
-def ans = flowVars.dividend / flowVars.divisor ;]]></scripting:script>
-            </scripting:component>
+        <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[for(def employee : payload){
+    println "Processing Employee Record : " + employee.get("no");
+    flowVars.dividend = Math.abs(new Random().nextInt() % 3 - 1);
+	flowVars.divisor = Math.abs(new Random().nextInt() % 3 - 1);
+    println "Payload: " + payload ;
+    println "Executing " + flowVars.dividend + " / " + flowVars.divisor ;
+    def ans = flowVars.dividend / flowVars.divisor ;
+    flowVars.lastRecordID = employee.get("no");
+}]]></scripting:script>
+        </scripting:component>
 
-            <set-variable variableName="previousRecordID" value="#[flowVars['currentRecord']]" doc:name="previousRecordID"/>
-        </foreach>
         <catch-exception-strategy doc:name="Catch Exception Strategy" enableNotifications="false" logException="false">
-            <set-variable variableName="lastRecordID" value="#[flowVars['previousRecordID']]" doc:name="Variable"/>
-            <objectstore:retrieve-and-store config-ref="ObjectStore__Configuration" key="lastRecordID" defaultValue-ref="#[0]" storeValue-ref="#[flowVars['previousRecordID']]" doc:name="Copy_of_ObjectStore"/>
             <scripting:component doc:name="Exception Stack Trace Print Out">
                 <scripting:script engine="Groovy"><![CDATA[System.out.println("Exception Encoutered ...");
 System.out.println("Resetting Back to Last Successful Record ID:" + flowVars['lastRecordID']);
